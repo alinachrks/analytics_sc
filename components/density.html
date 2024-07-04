@@ -61,34 +61,32 @@
 <div id="map"></div>
 <div class="calculation-box" id="sidebar"></div>
 <div class="button-container">
-    <button class="button" onclick="resetMap()">Сбросить</button>
-    <button class="button" onclick="toggleFullScreen()">Во весь экран</button>
+    <button class="button" onclick="resetMap()">Reset</button>
+    <button class="button" onclick="toggleFullScreen()">Full Screen</button>
 </div>
 <select id="color-column" onchange="updatePolygonColors()">
-    <option value="typeof">Покрытие соц. объектами</option>
-    <option value="Больницы">Больницы</option>
-    <option value="Детские сады">Детские сады</option>
-    <!-- <option value="Музеи">Музеи</option> -->
-    <option value="Остановки">Остановки</option>
-    <option value="Поликлиники">Поликлиники</option>
-    <option value="Родильные дома">Родильные дома</option>
-    <!-- <option value="Театры">Театры</option> -->
-    <option value="Школы">Школы</option>
-    <!-- <option value="Всего">По всем</option> -->
+    <option value="total_qty">Численность населения</option>
+    <option value="avg_age">Средний возраст</option>
+    <option value="avg_income_amount">Средний доход</option>
+    <option value="income_qty_product">Денежный оборот</option>
+    <option value="avg_1m_price">Средняя цена за кв. метр</option>
+    <!-- <option value="number_apart">Количество квартир</option> -->
+    <option value="num_schools">Количество школ</option>
+    <option value="num_hospitals">Количество больниц</option>
+    <option value="number_buss">Распределение бизнеса</option>
 </select>
-
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWxpbmFjaCIsImEiOiJjbGlpcnZpaTgwMTZ4M2twaGo1NjRsNHhhIn0.9jw_R_D1i1nqOtaolld-dQ';
 const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/alinach/cly3sycrp007v01pf9secfdmr',
-    center: [76.879751, 43.24517], // Centered on New York City
+    center: [76.879751, 43.24517], 
     zoom: 12
 });
 
 map.on('load', () => {
     // Replace this URL with your own GeoJSON data URL
-    const geojsonUrl = 'https://raw.githubusercontent.com/alinachrks/fun_house/main/analytics_rec_pivot.geojson';
+    const geojsonUrl = 'https://raw.githubusercontent.com/alinachrks/fun_house/main/portrait.geojson';
 
     // Add a source for your GeoJSON data.
     map.addSource('custom-data', {
@@ -104,17 +102,18 @@ map.on('load', () => {
         'paint': {
             'fill-color': [
                 'case',
-                ['==', ['typeof', ['get', 'Всего']], 'number'],
+                ['==', ['typeof', ['get', 'avg_income_amount']], 'number'],
                 [
                     'interpolate',
                     ['linear'],
-                    ['get', 'Всего'],
-                    0, 'rgba(241, 248, 246, 0.4)',        // Светло-серый
-                    2, 'rgba(17, 87, 171, 0.65)',         // Тёмно-синий
-                    3, 'rgba(0, 128, 128, 0.65)',         // Тиркиз
-                    5, 'rgba(255, 255, 0, 0.65)',         // Жёлтый
-                    7, 'rgba(126, 177, 16, 0.65)',        // Светло-зелёный
-                    8, 'rgba(39, 116, 6, 0.65)'           // Тёмно-зелёный
+                    ['get', 'avg_income_amount'],
+                    0, 'rgba(219, 209, 202, 0.4)',
+                    70000, 'rgba(118, 0, 0, 0.7)',
+                    150000, 'rgba(202, 32, 0, 0.7)',
+                    200000, 'rgba(255, 93, 0, 0.7)',
+                    270000, 'rgba(255, 183, 0, 0.7)',
+                    300000, 'rgba(206, 213, 1, 0.7)',
+                    500000, 'rgba(51, 141, 0, 0.7)'
                 ],
                 'rgba(211, 211, 211, 0.4)' // Light gray color for NaN
             ],
@@ -144,64 +143,40 @@ map.on('load', () => {
         for (const key in properties) {
             if (properties.hasOwnProperty(key) && properties[key] != null && properties[key] !== '') {
                 let displayName;
-                let valueDisplay;
                 switch (key) {
-                    case 'typeof':
-                        displayName = 'Рекомендации по объектам';
+                    case 'id_x':
+                        displayName = '№';
                         break;
-                    case 'Больницы':
-                        displayName = 'Больницы';
-                        valueDisplay = properties[key] === 1 ? '<span style="color: green;">Доступно</span>' : '<span style="color: red;">Недоступно</span>';
+                    case 'total_qty':
+                        displayName = 'Численность';
                         break;
-                    case 'Детские сады':
-                        displayName = 'Детские сады';
-                        valueDisplay = properties[key] === 1 ? '<span style="color: green;">Доступно</span>' : '<span style="color: red;">Недоступно</span>';
+                    case 'avg_age':
+                        displayName = 'Средний возраст';
                         break;
-                    case 'Музеи':
-                        displayName = 'Музеи';
-                        valueDisplay = properties[key] === 1 ? '<span style="color: green;">Доступно</span>' : '<span style="color: red;">Недоступно</span>';
+                    case 'avg_income_amount':
+                        displayName = 'Средний доход';
                         break;
-                    case 'Остановки':
-                        displayName = 'Остановки';
-                        valueDisplay = properties[key] === 1 ? '<span style="color: green;">Доступно</span>' : '<span style="color: red;">Недоступно</span>';
+                    case 'income_qty_product':
+                        displayName = 'Денежный оборот';
                         break;
-                    case 'Поликлиники':
-                        displayName = 'Поликлиники';
-                        valueDisplay = properties[key] === 1 ? '<span style="color: green;">Доступно</span>' : '<span style="color: red;">Недоступно</span>';
+                    case 'avg_1m_price':
+                        displayName = 'Средняя цена за кв. метр';
                         break;
-                    case 'Родильные дома':
-                        displayName = 'Родильные дома';
-                        valueDisplay = properties[key] === 1 ? '<span style="color: green;">Доступно</span>' : '<span style="color: red;">Недоступно</span>';
+                    case 'num_schools':
+                        displayName = 'Количество школ';
                         break;
-                    case 'Театры':
-                        displayName = 'Театры';
-                        valueDisplay = properties[key] === 1 ? '<span style="color: green;">Доступно</span>' : '<span style="color: red;">Недоступно</span>';
+                    case 'num_hospitals':
+                        displayName = 'Количество больниц';
                         break;
-                    case 'Школы':
-                        displayName = 'Школы';
-                        valueDisplay = properties[key] === 1 ? '<span style="color: green;">Доступно</span>' : '<span style="color: red;">Недоступно</span>';
+                    case 'number_buss':
+                        displayName = 'Количество объектов бизнеса';
                         break;
-                    case 'Всего':
-                        displayName = 'Всего';
-                        const totalValue = properties[key];
-                        if (totalValue > 7) {
-                            valueDisplay = 'Превосходно';
-                        } else if (totalValue >= 6 && totalValue <= 7) {
-                            valueDisplay = 'Хорошо, но можно лучше';
-                        } else if (totalValue >= 4 && totalValue <= 5) {
-                            valueDisplay = 'Необходимо срочно исправить ситуацию';
-                        } else {
-                            valueDisplay = 'Гетто';
-                        }
-                        break;
-                    default:
-                        displayName = key;
-                        valueDisplay = properties[key];
+                    // default:
+                    //     displayName = key;
                 }
-                sidebarContent += `<p><strong>${displayName}:</strong> ${valueDisplay}</p>`;
+                sidebarContent += `<p><strong>${displayName}:</strong> ${properties[key]}</p>`;
             }
         }
-
         sidebarContent += '</div>';
         document.getElementById('sidebar').innerHTML = sidebarContent;
 
@@ -219,7 +194,6 @@ map.on('load', () => {
             essential: true // this animation is considered essential with respect to prefers-reduced-motion
         });
     });
-
 
     // Change the cursor to a pointer when
     // the mouse is over the custom data layer.
@@ -257,7 +231,6 @@ function toggleFullScreen() {
     }
 }
 
-
 function updatePolygonColors() {
     const colorProperty = document.getElementById('color-column').value;
 
@@ -285,11 +258,11 @@ function updatePolygonColors() {
             ['linear'],
             ['get', colorProperty],
             minValue, 'rgba(241, 248, 246, 0.45)',
-            maxValue * 0.1, 'rgba(17, 87, 171, 0.65)',     // Dark blue
-            maxValue * 0.25, 'rgba(0, 128, 128, 0.65)',     // Teal
-            maxValue * 0.40, 'rgba(255, 255, 0, 0.65)',
-            maxValue * 0.70, 'rgba(126, 177, 16, 0.65)',     // Light green
-            maxValue * 0.95, 'rgba(39, 116, 6, 0.65)'        // Dark green
+            maxValue * 0.2, 'rgba(17, 87, 171, 0.65)',     // Dark blue
+            maxValue * 0.4, 'rgba(0, 128, 128, 0.65)',     // Teal
+            maxValue * 0.5, 'rgba(255, 255, 0, 0.65)',
+            maxValue * 0.6, 'rgba(126, 177, 16, 0.65)',     // Light green
+            maxValue * 0.7, 'rgba(39, 116, 6, 0.65)'        // Dark green
         ],
         'rgba(211, 211, 211, 0.4)' // Light gray color for NaN
     ],
@@ -297,7 +270,7 @@ function updatePolygonColors() {
     [
         'match',
         ['get', colorProperty],
-        0, 'rgba(255, 0, 0, 0.65)', // Red for 0
+        0, 'rgba(255, 255, 255, 0.4)', // Light gray for 0
         1, 'rgba(17, 87, 171, 0.65)',  // Dark blue for 1
         'rgba(211, 211, 211, 0.4)'     // Light gray color for other values
     ]);
